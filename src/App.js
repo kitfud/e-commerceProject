@@ -2,7 +2,7 @@ import React,{useState,useEffect} from 'react'
 // import Products from './components/Products/Products';
 // import Navbar from './components/Navbar/Navbar';
 import {commerce} from './lib/commerce'
-import {Products ,Navbar, Cart} from './components';
+import {Products ,Navbar, Cart,Checkout} from './components';
 import {BrowserRouter as Router,Switch,Route} from 'react-router-dom';
 
 const App = () => {
@@ -65,8 +65,11 @@ console.log(cart);
               handleEmptyCart={handleEmptyCart}
         />
         </Route>
-      
-       
+
+        <Route exact path="/checkout">
+        <Checkout/>
+
+        </Route>
         </Switch>
      
         </div>
