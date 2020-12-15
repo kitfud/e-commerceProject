@@ -24,6 +24,6 @@ export default makeStyles((theme) => ({
     display: 'flex',
     marginTop: '10%',
     width: '100%',
-    justifyContent: 'space-between',
+    justifyContent: 'space-between'
   },
 }));
