@@ -3,17 +3,17 @@ import {Paper,Stepper,Step,StepLabel,Typography,CircularProgress,Divider,Button}
 import useStyles from './styles';
 import AddressForm from '../AddressForm'
 import PaymentForm from '../PaymentForm'
-
+import {Link,useHistory} from 'react-router-dom'
 import {commerce} from '../../../lib/commerce';
 
 const steps = ['Shipping address','Payment details'];
 
-const Checkout = ({cart}) => {
+const Checkout = ({cart, order, onCaptureCheckout, error}) => {
     const [checkoutToken,setCheckoutToken]= useState(null);
     const [activeStep,setActiveStep]= useState(0);
     const [shippingData,setShippingData]= useState({});
     const classes = useStyles();
-
+  
     useEffect(()=>{
         const generateToken = async() =>{
             try{
@@ -22,7 +22,7 @@ const Checkout = ({cart}) => {
             setCheckoutToken(token);
         }
             catch(error){
-
+                
             }
         }
         generateToken();
@@ -41,7 +41,7 @@ const Checkout = ({cart}) => {
         </div>
     )
 
-    const Form = () => activeStep === 0 ? <AddressForm checkoutToken={checkoutToken} next={next}/> :<PaymentForm checkoutToken={checkoutToken} shippingData={shippingData}/>
+    const Form = () => activeStep === 0 ? <AddressForm checkoutToken={checkoutToken} next={next}/> :<PaymentForm checkoutToken={checkoutToken} nextStep={nextStep} backStep={backStep} onCaptureCheckout={onCaptureCheckout} shippingData={shippingData}/>
 
     return (
         <>
