@@ -9,47 +9,64 @@ import useStyles from './styles';
 
 const steps = ['Shipping address', 'Payment details'];
 
-const Checkout = ({ cart, onCaptureCheckout, order, error }) => {
+const Checkout = ({ cart, order, onCaptureCheckout, error, setErrorMessage }) => {
   const [checkoutToken, setCheckoutToken] = useState(null);
   const [activeStep, setActiveStep] = useState(0);
   const [shippingData, setShippingData] = useState({});
+
   const classes = useStyles();
   const history = useHistory();
 
   const nextStep = () => setActiveStep((prevActiveStep) => prevActiveStep + 1);
   const backStep = () => setActiveStep((prevActiveStep) => prevActiveStep - 1);
-
+ 
+  let mounted = false;
   useEffect(() => {
-    if (cart.id) {
+      mounted = true;
+      if (mounted){
       const generateToken = async () => {
         try {
-          const token = await commerce.checkout.generateToken(cart.id, { type: 'cart' });
+          console.log("getting token" + cart.id)
+          if(typeof cart.id === "string"){
+            console.log("inner")
+            setCheckoutToken( await commerce.checkout.generateToken(cart.id, { type: 'cart' }))
+          }
 
-          setCheckoutToken(token);
+
         } catch {
           if (activeStep !== steps.length) history.push('/');
         }
       };
 
-      generateToken();
+      generateToken()
     }
+      return function cleanup() {
+        mounted = false;
+    }
+    
   }, [cart]);
 
   const test = (data) => {
     setShippingData(data);
-
     nextStep();
   };
 
+  let resetError = () =>{
+    setErrorMessage("")
+  }
+
   let Confirmation = () => (order.customer ? (
+    
     <>
+    {console.log("ORDER:"+ JSON.stringify(order.customer))}
       <div>
         <Typography variant="h5">Thank you for your purchase, {order.customer.firstname} {order.customer.lastname}!</Typography>
+        <Typography>A Reciept has been emailed to you at: {order.customer.email}</Typography>
         <Divider className={classes.divider} />
         <Typography variant="subtitle2">Order ref: {order.customer_reference}</Typography>
       </div>
       <br />
-      <Button component={Link} variant="outlined" type="button" to="/">Back to home</Button>
+      <Button component={Link} variant="outlined"  type="button" to="/">Back to home</Button>
     </>
   ) : (
     <div className={classes.spinner}>
@@ -60,15 +77,20 @@ const Checkout = ({ cart, onCaptureCheckout, order, error }) => {
   if (error) {
     Confirmation = () => (
       <>
-        <Typography variant="h5">Error: {error}</Typography>
+        <Typography variant="h5">Error: {error}-"Payment not processed. Checkout again but with a valid zip code.</Typography>
         <br />
-        <Button component={Link} variant="outlined" type="button" to="/">Back to home</Button>
+        <Button component={Link} variant="outlined" onClick={resetError} type="button" to="/">Back to home</Button>
       </>
     );
+    
+   
   }
 
+
+
   const Form = () => (activeStep === 0
-    ? <AddressForm checkoutToken={checkoutToken} nextStep={nextStep} setShippingData={setShippingData} test={test} />
+    ? 
+    <AddressForm checkoutToken={checkoutToken} nextStep={nextStep} setShippingData={shippingData} test={test} />
     : <PaymentForm checkoutToken={checkoutToken} nextStep={nextStep} backStep={backStep} shippingData={shippingData} onCaptureCheckout={onCaptureCheckout} />);
 
   return (

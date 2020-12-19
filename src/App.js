@@ -11,11 +11,40 @@ const App = () => {
   const [cart, setCart] = useState({});
   const [order, setOrder] = useState({});
   const [errorMessage, setErrorMessage] = useState('');
+  let mounted = false;
+
+  function isEmpty(obj) {
+
+    // null and undefined are "empty"
+    if (obj == null) return true;
+
+    // Assume if it has a length property with a non-zero value
+    // that that property is correct.
+    if (obj.length > 0)    return false;
+    if (obj.length === 0)  return true;
+
+    // If it isn't an object at this point
+    // it is empty, but it can't be anything *but* empty
+    // Is it empty?  Depends on your application.
+    if (typeof obj !== "object") return true;
+
+    // Otherwise, does it have any properties of its own?
+    // Note that this doesn't handle
+    // toString and valueOf enumeration bugs in IE < 9
+    for (var key in obj) {
+        if (hasOwnProperty.call(obj, key)) return false;
+    }
+
+    return true;
+}
 
   const fetchProducts = async () => {
     const { data } = await commerce.products.list();
-
+    
+   
     setProducts(data);
+    
+   
   };
 
   const fetchCart = async () => {
@@ -26,6 +55,7 @@ const App = () => {
     const item = await commerce.cart.add(productId, quantity);
 
     setCart(item.cart);
+    setErrorMessage("");
   };
 
   const handleUpdateCartQty = async (lineItemId, quantity) => {
@@ -43,6 +73,7 @@ const App = () => {
   const handleEmptyCart = async () => {
     const response = await commerce.cart.empty();
 
+
     setCart(response.cart);
   };
 
@@ -57,16 +88,27 @@ const App = () => {
       const incomingOrder = await commerce.checkout.capture(checkoutTokenId, newOrder);
 
       setOrder(incomingOrder);
-
       refreshCart();
+     
     } catch (error) {
       setErrorMessage(error.data.error.message);
     }
   };
 
   useEffect(() => {
-    fetchProducts();
-    fetchCart();
+   setErrorMessage("")
+    mounted = true
+    if (mounted){
+     
+      fetchProducts();
+      fetchCart();
+      setErrorMessage("");
+    }
+
+    return function cleanup() {
+      mounted = false;
+  }
+
   }, []);
 
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
@@ -84,7 +126,7 @@ const App = () => {
             <Cart cart={cart} onUpdateCartQty={handleUpdateCartQty} onRemoveFromCart={handleRemoveFromCart} onEmptyCart={handleEmptyCart} />
           </Route>
           <Route path="/checkout" exact>
-            <Checkout cart={cart} order={order} onCaptureCheckout={handleCaptureCheckout} error={errorMessage} />
+            <Checkout cart={cart} order={order} onCaptureCheckout={handleCaptureCheckout} error={errorMessage} setErrorMessage = {setErrorMessage} />
           </Route>
         </Switch>
       </div>
