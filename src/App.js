@@ -11,7 +11,7 @@ const App = () => {
   const [cart, setCart] = useState({});
   const [order, setOrder] = useState({});
   const [errorMessage, setErrorMessage] = useState('');
-  let mounted = false;
+
 
   function isEmpty(obj) {
 
@@ -73,7 +73,6 @@ const App = () => {
   const handleEmptyCart = async () => {
     const response = await commerce.cart.empty();
 
-
     setCart(response.cart);
   };
 
@@ -97,7 +96,7 @@ const App = () => {
 
   useEffect(() => {
    setErrorMessage("")
-    mounted = true
+    let mounted = true
     if (mounted){
      
       fetchProducts();
@@ -126,7 +125,7 @@ const App = () => {
             <Cart cart={cart} onUpdateCartQty={handleUpdateCartQty} onRemoveFromCart={handleRemoveFromCart} onEmptyCart={handleEmptyCart} />
           </Route>
           <Route path="/checkout" exact>
-            <Checkout cart={cart} order={order} onCaptureCheckout={handleCaptureCheckout} error={errorMessage} setErrorMessage = {setErrorMessage} />
+            <Checkout cart={cart} order={order} setOrder= {setOrder} onCaptureCheckout={handleCaptureCheckout} error={errorMessage} setErrorMessage = {setErrorMessage} />
           </Route>
         </Switch>
       </div>

@@ -9,21 +9,21 @@ import useStyles from './styles';
 
 const steps = ['Shipping address', 'Payment details'];
 
-const Checkout = ({ cart, order, onCaptureCheckout, error, setErrorMessage }) => {
+const Checkout = ({ cart, order, setOrder, onCaptureCheckout, error, setErrorMessage }) => {
   const [checkoutToken, setCheckoutToken] = useState(null);
   const [activeStep, setActiveStep] = useState(0);
   const [shippingData, setShippingData] = useState({});
-
+  const [prevOrder, setPrevOrder] = useState("")
+  const [mounted, setMountState] = useState(true);
   const classes = useStyles();
   const history = useHistory();
 
   const nextStep = () => setActiveStep((prevActiveStep) => prevActiveStep + 1);
   const backStep = () => setActiveStep((prevActiveStep) => prevActiveStep - 1);
- 
-  let mounted = false;
-  useEffect(() => {
-      mounted = true;
-      if (mounted){
+
+
+  useEffect(() => { 
+      
       const generateToken = async () => {
         try {
           console.log("getting token" + cart.id)
@@ -37,14 +37,22 @@ const Checkout = ({ cart, order, onCaptureCheckout, error, setErrorMessage }) =>
           if (activeStep !== steps.length) history.push('/');
         }
       };
-
-      generateToken()
-    }
+      
+      if (mounted){
+        generateToken()
+      }
+     
+    
       return function cleanup() {
-        mounted = false;
+        setMountState(false)
+        setCheckoutToken(null)
     }
     
   }, [cart]);
+
+  const resetStep = (orderNum)=>{
+    setPrevOrder(orderNum)
+  }
 
   const test = (data) => {
     setShippingData(data);
@@ -55,7 +63,11 @@ const Checkout = ({ cart, order, onCaptureCheckout, error, setErrorMessage }) =>
     setErrorMessage("")
   }
 
-  let Confirmation = () => (order.customer ? (
+  let resetOrder = () =>{
+    setOrder({})
+  }
+
+  let Confirmation = () =>  ((order.customer) ? (
     
     <>
     {console.log("ORDER:"+ JSON.stringify(order.customer))}
@@ -66,7 +78,7 @@ const Checkout = ({ cart, order, onCaptureCheckout, error, setErrorMessage }) =>
         <Typography variant="subtitle2">Order ref: {order.customer_reference}</Typography>
       </div>
       <br />
-      <Button component={Link} variant="outlined"  type="button" to="/">Back to home</Button>
+      <Button component={Link} variant="outlined" onClick={resetOrder} type="button" to="/">Back to home</Button>
     </>
   ) : (
     <div className={classes.spinner}>
@@ -86,12 +98,35 @@ const Checkout = ({ cart, order, onCaptureCheckout, error, setErrorMessage }) =>
    
   }
 
+  const NewForm = ()=>{
+    const [active, setStep] = useState(0);
+
+    useEffect(()=>{
+     setStep(activeStep)
+     return () => {
+       setStep(1)
+     }
+    },[activeStep]);
+
+    if(active===0){
+      return (
+        <AddressForm checkoutToken={checkoutToken} nextStep={nextStep} setShippingData={shippingData} test={test} />
+      )
+    }
+    else{
+      return (
+<PaymentForm checkoutToken={checkoutToken} nextStep={nextStep} backStep={backStep} shippingData={shippingData} onCaptureCheckout={onCaptureCheckout} />
+      )
+    }
+  }
 
 
   const Form = () => (activeStep === 0
     ? 
     <AddressForm checkoutToken={checkoutToken} nextStep={nextStep} setShippingData={shippingData} test={test} />
-    : <PaymentForm checkoutToken={checkoutToken} nextStep={nextStep} backStep={backStep} shippingData={shippingData} onCaptureCheckout={onCaptureCheckout} />);
+    : <PaymentForm checkoutToken={checkoutToken} nextStep={nextStep} backStep={backStep} shippingData={shippingData} onCaptureCheckout={onCaptureCheckout} />
+  
+    );
 
   return (
     <>
@@ -107,7 +142,7 @@ const Checkout = ({ cart, order, onCaptureCheckout, error, setErrorMessage }) =>
               </Step>
             ))}
           </Stepper>
-          {activeStep === steps.length ? <Confirmation /> : checkoutToken && <Form />}
+          {activeStep === steps.length ? <Confirmation /> : checkoutToken && <NewForm />}
         </Paper>
       </main>
     </>
