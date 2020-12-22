@@ -9,21 +9,22 @@ import useStyles from './styles';
 
 const steps = ['Shipping address', 'Payment details'];
 
-const Checkout = ({ cart, order, setOrder, onCaptureCheckout, error, setErrorMessage }) => {
+const Checkout = ({ cart, order, setOrder, onCaptureCheckout, error, setErrorMessage, refreshCart }) => {
   const [checkoutToken, setCheckoutToken] = useState(null);
   const [activeStep, setActiveStep] = useState(0);
   const [shippingData, setShippingData] = useState({});
-  const [prevOrder, setPrevOrder] = useState("")
-  const [mounted, setMountState] = useState(true);
+  
   const classes = useStyles();
   const history = useHistory();
 
   const nextStep = () => setActiveStep((prevActiveStep) => prevActiveStep + 1);
   const backStep = () => setActiveStep((prevActiveStep) => prevActiveStep - 1);
+  
+ 
 
 
   useEffect(() => { 
-      
+   console.log("ACTIVE STEP is"  + activeStep)
       const generateToken = async () => {
         try {
           console.log("getting token" + cart.id)
@@ -38,25 +39,24 @@ const Checkout = ({ cart, order, setOrder, onCaptureCheckout, error, setErrorMes
         }
       };
       
-      if (mounted){
+      
         generateToken()
-      }
+      
      
     
-      return function cleanup() {
-        setMountState(false)
-        setCheckoutToken(null)
-    }
+  
     
   }, [cart]);
 
-  const resetStep = (orderNum)=>{
-    setPrevOrder(orderNum)
-  }
+ 
 
   const test = (data) => {
-    setShippingData(data);
     nextStep();
+    console.log(activeStep)
+    setShippingData(data);
+    
+   
+  
   };
 
   let resetError = () =>{
@@ -64,6 +64,7 @@ const Checkout = ({ cart, order, setOrder, onCaptureCheckout, error, setErrorMes
   }
 
   let resetOrder = () =>{
+    refreshCart()
     setOrder({})
   }
 
@@ -101,16 +102,22 @@ const Checkout = ({ cart, order, setOrder, onCaptureCheckout, error, setErrorMes
   const NewForm = ()=>{
     const [active, setStep] = useState(0);
 
+ 
+    
     useEffect(()=>{
-     setStep(activeStep)
+        console.log("A"+ active)
+        setStep(activeStep)
+      
      return () => {
+
        setStep(1)
+       console.log("ACTIVE NEW FORM" + active)
      }
     },[activeStep]);
 
-    if(active===0){
+    if(activeStep===0){
       return (
-        <AddressForm checkoutToken={checkoutToken} nextStep={nextStep} setShippingData={shippingData} test={test} />
+        <AddressForm checkoutToken={checkoutToken} active ={active} setStep = {setStep} test={test} />
       )
     }
     else{
@@ -130,6 +137,8 @@ const Checkout = ({ cart, order, setOrder, onCaptureCheckout, error, setErrorMes
 
   return (
     <>
+    {console.log("Rendered:"+ activeStep)}
+
       <CssBaseline />
       <div className={classes.toolbar} />
       <main className={classes.layout}>
